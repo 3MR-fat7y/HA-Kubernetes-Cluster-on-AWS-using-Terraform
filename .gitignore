@@ -32,8 +32,6 @@ terraform.rc
 # Ignore plan files
 plan
 plan1
-plan2
-plan3
 plan.txt
 
 # Ignore lock files
