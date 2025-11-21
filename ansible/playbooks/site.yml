@@ -1,18 +1,3 @@
----
-# =============================================================================
-# Main Playbook: Deploy HA Kubernetes Cluster
-# =============================================================================
-# This is the master playbook that orchestrates the entire cluster setup
-#
-# Usage:
-#   ansible-playbook playbooks/site.yml
-#
-# Or run specific parts:
-#   ansible-playbook playbooks/site.yml --tags "prepare"
-#   ansible-playbook playbooks/site.yml --tags "masters"
-#   ansible-playbook playbooks/site.yml --tags "workers"
-# =============================================================================
-
 - name: "=== PHASE 1: Prepare All Nodes ==="
   hosts: k8s_cluster
   become: true
@@ -79,7 +64,7 @@
       changed_when: false
 
     - name: Display cluster status
-      shell: kubectl get nodes -o wide
+      shell: kubectl get nodes 
       register: cluster_status
       changed_when: false
 

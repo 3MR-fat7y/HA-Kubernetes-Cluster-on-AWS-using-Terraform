@@ -54,41 +54,13 @@
   set_fact:
     hosts_content: |
       127.0.0.1 localhost {{ load_balancer_dns }}
-      {% for host in groups['masters'] %}
-      {{ hostvars[host]['private_ip'] }} {{ host }}
-      {% endfor %}
-      {% for host in groups['workers'] %}
-      {{ hostvars[host]['private_ip'] }} {{ host }}
-      {% endfor %}
-      
-      # IPv6
-      ::1 ip6-localhost ip6-loopback
-      fe00::0 ip6-localnet
-      ff00::0 ip6-mcastprefix
-      ff02::1 ip6-allnodes
-      ff02::2 ip6-allrouters
-      ff02::3 ip6-allhosts
   when: inventory_hostname == groups['masters'][0]
 
 - name: Build /etc/hosts content for non-leader nodes
   set_fact:
     hosts_content: |
       127.0.0.1 localhost
-      {{ hostvars[groups['masters'][0]]['private_ip'] }} {{ groups['masters'][0] }} {{ load_balancer_dns }}
-      {% for host in groups['masters'][1:] %}
-      {{ hostvars[host]['private_ip'] }} {{ host }}
-      {% endfor %}
-      {% for host in groups['workers'] %}
-      {{ hostvars[host]['private_ip'] }} {{ host }}
-      {% endfor %}
-      
-      # IPv6
-      ::1 ip6-localhost ip6-loopback
-      fe00::0 ip6-localnet
-      ff00::0 ip6-mcastprefix
-      ff02::1 ip6-allnodes
-      ff02::2 ip6-allrouters
-      ff02::3 ip6-allhosts
+      {{ hostvars[groups['masters'][0]]['private_ip'] }}  {{ load_balancer_dns }}
   when: inventory_hostname != groups['masters'][0]
 
 - name: Configure /etc/hosts

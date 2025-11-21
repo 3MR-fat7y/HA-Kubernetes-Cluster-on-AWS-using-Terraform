@@ -6,8 +6,8 @@ kubernetes_version: "1.33"
 kubernetes_version_full: "1.33.0-1.1"  # Exact version for apt
 
 # Load Balancer DNS (replace with your actual LB DNS)
-load_balancer_dns: "production-k8s-api-lb-29f1add1c39b064d.elb.us-east-1.amazonaws.com"
-control_plane_endpoint: "production-k8s-api-lb-29f1add1c39b064d.elb.us-east-1.amazonaws.com:6443"
+load_balancer_dns: "production-k8s-api-lb-f3c7794633d2795e.elb.us-east-1.amazonaws.com"
+control_plane_endpoint: "production-k8s-api-lb-f3c7794633d2795e.elb.us-east-1.amazonaws.com:6443"
 
 # S3 Bucket for bootstrap artifacts (replace with your bucket name)
 s3_bucket_name: "production-k8s-bootstrap-3535026c"
