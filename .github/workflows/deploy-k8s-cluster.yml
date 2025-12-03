@@ -1,7 +1,7 @@
 name: Deploy HA Kubernetes Cluster
 
 on:
-  workflow_dispatch:  
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -14,11 +14,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (OIDC — zero secrets!)
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::919586551447:role/GitHubActionsKubernetesRole   
+          role-to-assume: arn:aws:iam::YOUR_ACCOUNT_ID:role/GitHubActionsKubernetesRole  # Replace with your 12-digit AWS ID
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
 
       - name: Terraform Init & Apply
         working-directory: ./terraform
@@ -28,8 +33,9 @@ jobs:
 
       - name: Generate Ansible Inventory
         run: |
-          chmod +x ansible/generate-inventory.sh
-          ansible/generate-inventory.sh terraform   # it works from repo root
+          cd ansible
+          chmod +x generate-inventory.sh
+          ./generate-inventory.sh ../terraform
 
       - name: Install Ansible
         run: |
@@ -41,9 +47,5 @@ jobs:
         run: |
           ansible-playbook -i inventory/hosts.ini site.yml
 
-      - name: Success Message
-        run: |
-          echo "HA KUBERNETES CLUSTER IS LIVE!"
-          echo "Control Plane: https://$(terraform output -raw load_balancer_dns):6443"
-          echo "Download kubeconfig:"
-          echo "aws s3 cp s3://$(terraform output -raw s3_bucket_name)/kubeconfig ~/.kube/config"
+      - name: Success
+        run: echo "✅ Cluster deployed! Endpoint: https://$(cd terraform && terraform output -raw load_balancer_dns):6443"
