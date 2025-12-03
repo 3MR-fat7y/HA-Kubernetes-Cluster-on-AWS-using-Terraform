@@ -1,8 +1,7 @@
 # HA Kubernetes Cluster on AWS (Terraform + Ansible)
 
-
 ![Deploy HA Kubernetes Cluster](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/deploy-cluster.yml/badge.svg)
-[![Destroy Cluster](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/destroy-cluster.yml/badge.svg)](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/destroy-cluster.yml)
+[![Destroy Cluster](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/destroy-cluster.yml/badge.svg)](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/destroy-cluster.yml)
 
 Production-ready, highly available Kubernetes cluster on AWS using Terraform for infrastructure and Ansible for configuration management.
 
