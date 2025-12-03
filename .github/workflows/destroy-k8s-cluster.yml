@@ -1,4 +1,3 @@
-# .github/workflows/destroy-cluster.yml
 name: Destroy HA Kubernetes Cluster
 
 on:
@@ -18,7 +17,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::919586551447:role/GitHubActionsKubernetesRole   
+          role-to-assume: arn:aws:iam::919586551447:role/GitHubActionsKubernetesRole  
 
       - name: Terraform Destroy
         working-directory: ./terraform
@@ -27,4 +26,4 @@ jobs:
           terraform destroy -auto-approve
 
       - name: Done
-        run: echo "Cluster destroyed — zero cost left behind"
+        run: echo "✅ Cluster destroyed — clean slate."
