@@ -36,6 +36,12 @@ jobs:
           chmod +x generate-inventory.sh
           ./generate-inventory.sh ".."
 
+      - name: Setup SSH Key for Ansible
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.K8S_CLUSTER_PRIVATE_KEY }}" > ~/.ssh/k8s-cluster-key.pem
+          chmod 600 ~/.ssh/k8s-cluster-key.pem
+
       - name: Install Ansible
         run: |
           python3 -m pip install --user ansible boto3 botocore
@@ -43,9 +49,11 @@ jobs:
 
       - name: Run Ansible Playbook
         working-directory: ./ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"
         run: |
           ansible-playbook -i inventory/hosts.ini site.yml
 
       - name: Success
         run: |
-          echo "✅ Cluster deployed! Endpoint: https://$(cd terraform && terraform output -raw load_balancer_dns):6443"
+          echo "✅ Cluster deployed Successfully!"
