@@ -1,0 +1,49 @@
+name: Deploy HA Kubernetes Cluster
+
+on:
+  workflow_dispatch:  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC — zero secrets!)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::919586551447:role/GitHubActionsKubernetesRole   
+
+      - name: Terraform Init & Apply
+        working-directory: ./terraform
+        run: |
+          terraform init -upgrade
+          terraform apply -auto-approve
+
+      - name: Generate Ansible Inventory
+        run: |
+          chmod +x ansible/generate-inventory.sh
+          ansible/generate-inventory.sh terraform   # it works from repo root
+
+      - name: Install Ansible
+        run: |
+          python3 -m pip install --user ansible boto3 botocore
+          ansible-galaxy collection install community.general ansible.posix
+
+      - name: Run Ansible Playbook
+        working-directory: ./ansible
+        run: |
+          ansible-playbook -i inventory/hosts.ini site.yml
+
+      - name: Success Message
+        run: |
+          echo "HA KUBERNETES CLUSTER IS LIVE!"
+          echo "Control Plane: https://$(terraform output -raw load_balancer_dns):6443"
+          echo "Download kubeconfig:"
+          echo "aws s3 cp s3://$(terraform output -raw s3_bucket_name)/kubeconfig ~/.kube/config"
