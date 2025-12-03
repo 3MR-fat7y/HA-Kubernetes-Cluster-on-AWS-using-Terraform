@@ -55,7 +55,7 @@ jobs:
           ANSIBLE_DISPLAY_SKIPPED_HOSTS: "true"
           ANSIBLE_HOST_KEY_CHECKING: "false"
         run: |
-          ansible-playbook -i inventory/hosts.ini site.yml
+          ansible-playbook -i inventory/hosts.ini playbooks/site.yml
 
       - name: Success
         run: |
