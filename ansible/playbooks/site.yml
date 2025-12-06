@@ -106,6 +106,4 @@
           {{ cluster_status.stdout }}
           ========================================
           
-          🚀 DASHBOARD: http://{{ ansible_host }}:30000
-          
-          ========================================
+          🚀 DASHBOARD: http://{{ ansible_host }}:30000/c/main/token
