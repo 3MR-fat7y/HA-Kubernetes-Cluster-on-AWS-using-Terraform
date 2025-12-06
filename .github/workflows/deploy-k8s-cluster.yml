@@ -95,11 +95,17 @@ jobs:
         run: |
           ansible-playbook -i inventory/hosts.ini playbooks/site.yml
 
-      - name: Upload Headlamp Token Artifact
+      - name: Encrypt Headlamp Token
+        run: |
+          sudo apt-get install -y zip
+          cd ansible
+          zip -P "${{ secrets.ARTIFACT_PASSWORD }}" headlamp-token.zip headlamp_token.txt
+
+      - name: Upload Secure Token Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: headlamp-token
-          path: ansible/headlamp_token.txt
+          name: headlamp-token-secure
+          path: ansible/headlamp-token.zip
           retention-days: 1
 
       - name: Success
