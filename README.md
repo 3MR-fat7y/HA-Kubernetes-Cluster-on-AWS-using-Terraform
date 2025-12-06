@@ -1,331 +1,131 @@
- # HA Kubernetes Cluster on AWS (Terraform + Ansible)
+# HA Kubernetes Cluster on AWS (Terraform + Ansible)
 
 [![Deploy HA Kubernetes Cluster](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/deploy-k8s-cluster.yml/badge.svg)](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/deploy-k8s-cluster.yml)
-[![Destroy Cluster](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/destroy-k8s-cluster.yml/badge.svg)](https://github.com/OmarFathy22/HA-Kubernetes-Cluster-on-AWS-using-Terraform/actions/workflows/destroy-k8s-cluster.yml)
 
-Production-ready, highly available Kubernetes cluster on AWS using only Terraform + Ansible (no EKS, no managed services).
+A production-ready, **High Availability Kubernetes Cluster** deployed on AWS using **Terraform**, **Ansible**, and **GitHub Actions**.
+
+This project provides a fully automated pipeline to provision infrastructure, bootstrap a multi-master Kubernetes cluster, and deploy a secure Web Dashboard (**Headlamp**) with zero manual intervention.
 
 ---
 
-## 🎉 What's New: Ansible Integration
+## 🌟 Key Features
 
-**v2.0 - Complete Refactor from Bash Scripts to Ansible**
+- **High Availability**: 3 Control Plane nodes (Stacked etcd) + Scalable Workers.
+- **Zero-Touch Automation**: One-click deployment via GitHub Actions.
+- **Visual Dashboard**: Integrated **Headlamp** UI for easy cluster management.
+- **Security First**:
+  - AWS OIDC Authentication (No long-lived AWS keys).
+  - Encrypted Artifacts for sensitive tokens.
+  - Private Networking with Calico CNI.
 
-| Before (v1.0) | After (v2.0) |
-|---------------|--------------|
-| ❌ Bash scripts in EC2 user_data | ✅ Ansible playbooks & roles |
-| ❌ Can't re-run without recreating | ✅ Idempotent - run anytime |
-| ❌ Hard to debug and maintain | ✅ Clear, readable YAML |
-| ❌ No upgrade path | ✅ In-place Kubernetes upgrades |
-| ❌ Manual IP management | ✅ Auto-generated inventory |
+---
 
-**Key Benefits:**
-- 🔄 **Idempotent**: Safe to run multiple times
-- 🎯 **Maintainable**: Easy-to-read YAML instead of bash
-- 🚀 **Upgradeable**: Update Kubernetes without destroying cluster
-- 🔧 **Testable**: Run specific tasks with tags
-- 📊 **Professional**: Industry-standard automation
+## 📜 Project Evolution (Versions)
+
+This project has evolved through four distinct milestones. You can checkout specific tags to see the history:
+
+| Version | Tag | Description |
+| :--- | :--- | :--- |
+| **v1.0** | `release/v1` | **Shell Scripts**: Initial stable version using Bash for automation. |
+| **v2.0** | `release/v2` | **Ansible**: Complete refactor to Ansible Roles & Playbooks for idempotency. |
+| **v3.0** | `release/v3` | **GitHub Actions**: Full CI/CD pipeline implementation. |
+| **v4.0** | `release/v4` | **Headlamp Integration**: Added secure web dashboard & artifact encryption (Current). |
+
+---
+
+## 🚀 How to Deploy (GitHub Actions)
+
+The **recommended** way to use this project is via the automated pipeline.
+
+### 1. Prerequisites (Secrets)
+Go to your Repository **Settings > Secrets and variables > Actions** and set these Secrets:
+
+| Secret Name | Description |
+| :--- | :--- |
+| `K8S_CLUSTER_PRIVATE_KEY` | Your EC2 SSH Private Key (PEM format) for Ansible access. |
+| `ARTIFACT_PASSWORD` | **Important**: Password used to encrypt the Dashboard Token artifact. |
+
+*Note: The workflow uses AWS OIDC for authentication, so you need to configure the IAM Role in `.github/workflows/deploy-k8s-cluster.yml`.*
+
+### 2. Run the Workflow
+1. Go to the **Actions** tab.
+2. Select **Deploy HA Kubernetes Cluster**.
+3. Click **Run workflow**.
+4. Configure options:
+   - **Master/Worker Count**: Choose cluster size.
+   - **Instance Types**: Cost/Performance options.
+   - **Region**: AWS Region.
+5. Watch the magic happen! ✨
+
+### 3. Access the Dashboard
+Once the deployment finishes:
+1. **Get the Link**: Open the workflow logs, look at the **"Run Ansible Playbook"** step for:
+   `🚀 DASHBOARD: http://<ip>:30000/c/main/token`
+2. **Get the Token**:
+   - Go to the **Summary** page of the run.
+   - Download the **`headlamp-token-secure`** artifact.
+   - Unzip it using your **`ARTIFACT_PASSWORD`**.
+3. **Login**: Paste the token into Headlamp.
+
+---
+
+## 💻 Local Deployment (Legacy)
+
+You can still run everything from your laptop if you have Terraform & Ansible installed.
+
+```bash
+# 1. Provision Infrastructure
+cd terraform
+terraform init
+terraform apply -auto-approve
+
+# 2. Generate Inventory
+cd ../ansible
+chmod +x generate-inventory.sh
+./generate-inventory.sh ".."
+
+# 3. Configure Kubernetes
+ansible-playbook playbooks/site.yml
+```
 
 ---
 
 ## 🏗️ Architecture
 
-```
-                    Internet Gateway
-                           |
-              Network Load Balancer (API :6443)
-                           |
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-    Master-01          Master-02         Master-03
-    (Leader)          (Follower)        (Follower)
-        │                  │                  │
-        └──────────────────┼──────────────────┘
-                           |
-                    etcd HA Cluster
-                           |
-                ┌──────────┴──────────┐
-                │                     │
-            Worker-01             Worker-02
-                
-                S3 Bucket (Bootstrap Coordination)
-```
-
-**Components:**
-- 3 Master Nodes (HA control plane)
-- 2 Worker Nodes (workloads)
-- Network Load Balancer (single API endpoint)
-- S3 Bucket (join token coordination)
-- Calico CNI (pod networking)
-
----
-
-## 📋 Prerequisites
-
-```bash
-# Required tools
-terraform --version  # >= 1.7
-ansible --version    # >= 2.15
-aws --version        # >= 2.x
-jq --version         # for inventory generation
-
-# AWS
-- AWS Account with IAM permissions
-- EC2 key pair for SSH access
-- AWS CLI configured (aws configure)
-```
-
-**Install tools:**
-```bash
-# Ubuntu/Debian
-sudo apt install -y terraform ansible awscli jq
-
-# macOS
-brew install terraform ansible awscli jq
+```mermaid
+graph TD
+    User[User] -->|HTTPS| NLB[Network Load Balancer]
+    NLB --> Master1[Master 01]
+    NLB --> Master2[Master 02]
+    NLB --> Master3[Master 03]
+    
+    subgraph Control Plane
+    Master1 <--> Etcd1[etcd]
+    Master2 <--> Etcd2[etcd]
+    Master3 <--> Etcd3[etcd]
+    end
+    
+    subgraph Workers
+    Master1 -->|Manage| Worker1[Worker 01]
+    Master1 -->|Manage| Worker2[Worker 02]
+    end
+    
+    subgraph Storage
+    S3[S3 Bucket] -.->|Bootstrap Tokens| Master1
+    end
 ```
 
 ---
 
-## 🚀 Quick Start (3 Simple Steps)
+## 🔧 Tools Used
 
-### Step 1: Deploy Infrastructure with Terraform
-
-```bash
-cd terraform
-terraform init
-terraform apply -auto-approve
-
-# Wait ~5 minutes for EC2 instances
-```
-
-### Step 2: Generate Ansible Inventory
-
-```bash
-cd ../ansible
-chmod +x generate-inventory.sh
-./generate-inventory.sh
-
-# Edit SSH key path in generated inventory
-nano inventory/hosts.ini
-# Update: ansible_ssh_private_key_file=~/.ssh/your-key.pem
-```
-
-### Step 3: Deploy Kubernetes with Ansible
-
-```bash
-ansible-playbook playbooks/site.yml
-
-# Total time: ~40 minutes
-# ✓ Prepare nodes (15-20 min)
-# ✓ Initialize first master (5-10 min)
-# ✓ Join additional masters (5 min)
-# ✓ Join workers (5 min)
-```
-
-### Access Your Cluster
-
-```bash
-# Get master IP
-MASTER_IP=$(grep master01 inventory/hosts.ini | awk '{print $2}' | cut -d'=' -f2)
-
-# Copy kubeconfig
-scp -i ~/.ssh/your-key.pem ubuntu@${MASTER_IP}:/root/.kube/config ~/.kube/config
-
-# Verify
-kubectl get nodes
-```
-
-**Expected output:**
-```
-NAME       STATUS   ROLES           AGE   VERSION
-master01   Ready    control-plane   10m   v1.33.0
-master02   Ready    control-plane   8m    v1.33.0
-master03   Ready    control-plane   6m    v1.33.0
-worker01   Ready    worker          4m    v1.33.0
-worker02   Ready    worker          4m    v1.33.0
-```
+- **Terraform**: Infrastructure as Code (AWS EC2, VPC, NLB, IAM).
+- **Ansible**: Configuration Management (Kubeadm, Containerd, Headlamp).
+- **GitHub Actions**: CI/CD Orchestration.
+- **Headlamp**: Kubernetes Web UI.
+- **Calico**: CNI Plugin for Pod Networking.
 
 ---
 
-## 📁 Project Structure
-
-```
-.
-├── terraform/                 # Infrastructure (AWS resources)
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── outputs.tf            # Used by Ansible
-│   └── modules/
-│       ├── vpc/
-│       ├── security_groups/
-│       ├── load_balancer/
-│       ├── s3/
-│       └── ec2/
-│
-└── ansible/                   # Configuration (Kubernetes setup)
-    ├── ansible.cfg
-    ├── generate-inventory.sh  # Auto-creates inventory from Terraform
-    ├── inventory/
-    │   ├── hosts.ini         # Generated automatically
-    │   └── group_vars/
-    │       ├── all.yml       # Global variables (K8s version, LB DNS)
-    │       ├── masters.yml
-    │       └── workers.yml
-    ├── playbooks/
-    │   └── site.yml          # Main playbook
-    └── roles/
-        ├── common/           # Setup all nodes
-        ├── kubernetes-master/ # Setup masters
-        ├── kubernetes-worker/ # Setup workers
-        
-```
-
----
-
-## 🔧 Common Operations
-
-### Add More Workers
-
-```bash
-# Update Terraform
-cd terraform
-terraform apply -var="worker_count=4"
-
-# Regenerate inventory
-cd ../ansible
-./generate-inventory.sh
-
-# Deploy new workers only
-ansible-playbook playbooks/site.yml --limit worker03,worker04 --tags prepare,workers
-```
-
-### Run Specific Tasks
-
-```bash
-# Only prepare nodes
-ansible-playbook playbooks/site.yml --tags prepare
-
-# Only setup masters
-ansible-playbook playbooks/site.yml --tags masters
-
-# Only join workers
-ansible-playbook playbooks/site.yml --tags workers
-```
-
-### Re-run Deployment (Safe!)
-
-```bash
-# Ansible is idempotent - safe to run multiple times
-ansible-playbook playbooks/site.yml
-
-# It will:
-# ✓ Skip already completed tasks
-# ✓ Fix any configuration drift
-# ✓ Complete any failed tasks
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Test SSH Connectivity
-
-```bash
-# Test all nodes
-ansible all -m ping
-
-# If it fails, check:
-chmod 400 ~/.ssh/your-key.pem
-ssh -i ~/.ssh/your-key.pem ubuntu@<master-ip>
-```
-
-### Debug Ansible Execution
-
-```bash
-# Verbose output
-ansible-playbook playbooks/site.yml -vvv
-
-# Run on specific node
-ansible-playbook playbooks/site.yml --limit master02
-
-# Start from specific task
-ansible-playbook playbooks/site.yml --start-at-task="Install containerd"
-```
-
-### Check Node Status
-
-```bash
-# SSH to node
-ssh -i ~/.ssh/your-key.pem ubuntu@<node-ip>
-
-# Check services
-sudo systemctl status kubelet
-sudo systemctl status containerd
-
-# Check logs
-sudo journalctl -u kubelet -f
-```
-
----
-
-## 🧹 Cleanup
-
-```bash
-cd terraform
-terraform destroy -auto-approve
-```
-
----
-
-## 📊 Specifications
-
-**Kubernetes**: v1.33 (latest stable)  
-**Container Runtime**: containerd with systemd cgroups  
-**CNI Plugin**: Calico v3.27.3  
-**Instance Type**: t3.medium (2 vCPU, 4GB RAM)  
-**OS**: Ubuntu 22.04 LTS  
-**Storage**: 20GB per instance  
-
----
-
-## 🎯 Why Ansible Over Bash Scripts?
-
-### Bash Scripts (v1.0)
-```bash
-#!/bin/bash
-apt-get update || true
-kubeadm init ... > /tmp/out 2>&1 || (cat /tmp/out; exit 1)
-# If fails at line 100, destroy and start over
-```
-
-### Ansible (v2.0)
-```yaml
-- name: Update packages
-  apt:
-    update_cache: yes
-  retries: 3
-
-- name: Initialize cluster
-  command: kubeadm init ...
-  when: not already_initialized
-  register: result
-```
-
-**Result:** Readable, maintainable, and re-runnable automation.
-
----
-
-
-## 📝 License
-
-MIT License - Feel free to use and modify
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please open an issue or submit a PR.
-
----
-
-**Built with ❤️ using Terraform, Ansible, and Kubernetes**
+## 📄 License
+MIT License. Free to use and modify.
