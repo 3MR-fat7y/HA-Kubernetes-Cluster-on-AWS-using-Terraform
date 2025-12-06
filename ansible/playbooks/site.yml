@@ -83,6 +83,20 @@
       changed_when: false
       ignore_errors: true
 
+    - name: Save Headlamp Token to file (remote)
+      copy:
+        content: "{{ headlamp_token.stdout }}"
+        dest: "/tmp/headlamp_token.txt"
+        mode: '0600'
+      changed_when: false
+
+    - name: Fetch Headlamp Token to Controller
+      fetch:
+        src: "/tmp/headlamp_token.txt"
+        dest: "headlamp_token.txt"
+        flat: yes
+      changed_when: false
+
     - name: Show cluster information
       debug:
         msg: |
@@ -95,7 +109,6 @@
           🚀 ACCESS YOUR DASHBOARD (Headlamp)
           -----------------------------------
           LINK:  https://{{ ansible_host }}:30000
-          TOKEN: {{ headlamp_token.stdout }}
           
-          (Note: Accept the self-signed certificate warning)
+          (Get the token from the 'headlamp-token' Artifact)
           ========================================

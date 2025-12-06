@@ -2,6 +2,15 @@ name: Deploy HA Kubernetes Cluster
 
 on:
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform Action'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 jobs:
   deploy:
@@ -57,7 +66,14 @@ jobs:
         run: |
           ansible-playbook -i inventory/hosts.ini playbooks/site.yml
 
+      - name: Upload Headlamp Token Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: headlamp-token
+          path: ansible/headlamp_token.txt
+          retention-days: 1
+
       - name: Success
         run: |
           echo "✅ Cluster deployed Successfully!"
-          echo "� CHECK THE LOGS ABOVE FOR DASHBOARD LINK & TOKEN 👇"
+          echo "👇 CHECK THE LOGS ABOVE FOR DASHBOARD LINK 👇"
