@@ -48,7 +48,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ inputs.aws_region }}
-          role-to-assume: arn:aws:iam::919586551447:role/GitHubActionsKubernetesRole  
+          role-to-assume: arn:aws:iam::440756235026:role/GitHubActionsKubernetesRole  
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
