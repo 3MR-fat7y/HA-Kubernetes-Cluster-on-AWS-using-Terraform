@@ -11,10 +11,10 @@ terraform {
     }
   }
   backend "s3" {
-    bucket         = "my-terraform-states-omar"
+    bucket         = "my-terraform-state-bucket-598624"
     key            = "k8s-ha/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "terraform-locks"
+    dynamodb_table = "terraform-state-locks"
     encrypt        = true
   }
 }
