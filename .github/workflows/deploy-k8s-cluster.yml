@@ -5,14 +5,14 @@ on:
     inputs:
       master_count:
         type: choice
-        options: ['3', '5']
-        default: '3'
+        options: ['1','2','3','4','5']
+        default: '2'
         description: "Number of Kubernetes masters"
 
       worker_count:
         type: choice
         options: ['1','2','3','4','5']
-        default: '2'
+        default: '3'
         description: "Number of Kubernetes workers"
 
       master_instance_type:
@@ -48,7 +48,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ inputs.aws_region }}
-          role-to-assume: arn:aws:iam::440756235026:role/GitHubActionsKubernetesRole  
+          role-to-assume: ${{secrets._AWS_ROLE_}}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
