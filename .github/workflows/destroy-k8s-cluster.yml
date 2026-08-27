@@ -2,6 +2,12 @@ name: Destroy HA Kubernetes Cluster
 
 on:
   workflow_dispatch:
+    inputs:
+      aws_region:
+        type: choice
+        options: ['us-east-1', 'us-west-2', 'eu-central-1']
+        default: 'us-west-2'
+        description: "AWS region the cluster was deployed in"
 
 jobs:
   destroy:
@@ -17,8 +23,8 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: us-west-2
-          role-to-assume: ${{secrets._AWS_ROLE_}}  
+          aws-region: ${{ inputs.aws_region }}
+          role-to-assume: ${{secrets._AWS_ROLE_}}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -31,7 +37,7 @@ jobs:
 
       - name: Terraform Destroy
         run: |
-          terraform destroy -auto-approve
+          terraform destroy -auto-approve -var="aws_region=${{ inputs.aws_region }}"
 
       - name: Done
         run: |
