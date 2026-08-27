@@ -11,7 +11,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket         = "my-terraform-state-bucket-598624"
+    bucket         = "k8s-env-state-file"
     key            = "k8s-ha/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "terraform-state-locks"
