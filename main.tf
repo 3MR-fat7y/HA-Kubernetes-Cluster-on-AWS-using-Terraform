@@ -54,10 +54,12 @@ module "security_groups" {
 module "load_balancer" {
   source = "./modules/load-balancer"
 
-  environment        = var.environment
-  vpc_id             = module.vpc.vpc_id
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  security_group_ids = [module.security_groups.lb_security_group_id]
+  environment            = var.environment
+  vpc_id                 = module.vpc.vpc_id
+  public_subnet_ids      = module.vpc.public_subnet_ids
+  security_group_ids     = [module.security_groups.lb_security_group_id]
+  alb_security_group_id  = module.security_groups.alb_security_group_id
+  ingress_http_node_port = var.ingress_http_node_port
 }
 
 
@@ -78,6 +80,8 @@ module "ec2_instances" {
   load_balancer_dns         = module.load_balancer.lb_dns_name
   bootstrap_s3_bucket       = aws_s3_bucket.k8s_bootstrap.bucket
   iam_instance_profile_name = aws_iam_instance_profile.ec2_profile.name
+  ingress_target_group_arn  = module.load_balancer.ingress_target_group_arn
+  ingress_http_node_port    = var.ingress_http_node_port
 }
 
 # S3 bucket for bootstrap artifacts (kubeadm token, cert key)

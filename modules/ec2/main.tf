@@ -108,3 +108,13 @@ resource "aws_lb_target_group_attachment" "master" {
   port             = 6443
 }
 
+################################################################################
+# ATTACH WORKER NODES TO INGRESS ALB TARGET GROUP
+################################################################################
+resource "aws_lb_target_group_attachment" "worker_ingress" {
+  count            = var.worker_count
+  target_group_arn = var.ingress_target_group_arn
+  target_id        = aws_instance.worker[count.index].id
+  port             = var.ingress_http_node_port
+}
+

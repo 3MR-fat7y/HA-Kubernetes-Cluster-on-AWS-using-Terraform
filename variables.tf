@@ -61,3 +61,9 @@ variable "worker_count" {
   type        = number
   default     = 2
 }
+
+variable "ingress_http_node_port" {
+  description = "NodePort the in-cluster ingress-nginx controller's HTTP port is exposed on (check with: kubectl get svc -n ingress-nginx)"
+  type        = number
+  default     = 30080
+}

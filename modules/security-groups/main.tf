@@ -33,6 +33,44 @@ resource "aws_security_group" "lb" {
 }
 
 ##############################
+# Application Load Balancer Security Group (ingress-nginx)
+##############################
+resource "aws_security_group" "alb" {
+  name        = "${var.environment}-k8s-alb-sg"
+  description = "Security group for the application load balancer fronting ingress-nginx"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "HTTP from anywhere"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTPS from anywhere"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow all outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.environment}-k8s-alb-sg"
+    Environment = var.environment
+  }
+}
+
+##############################
 # Master Nodes Security Group
 ##############################
 resource "aws_security_group" "master" {
@@ -217,6 +255,11 @@ variable "allowed_ssh_ips" {
 output "lb_security_group_id" {
   description = "Load balancer security group ID"
   value       = aws_security_group.lb.id
+}
+
+output "alb_security_group_id" {
+  description = "Application load balancer security group ID"
+  value       = aws_security_group.alb.id
 }
 
 output "master_security_group_id" {

@@ -17,6 +17,11 @@ output "load_balancer_dns" {
   value       = module.load_balancer.lb_dns_name
 }
 
+output "ingress_alb_dns" {
+  description = "Application load balancer DNS name (point your domain here for ingress-nginx)"
+  value       = module.load_balancer.alb_dns_name
+}
+
 output "load_balancer_arn" {
   description = "Load balancer ARN"
   value       = module.load_balancer.lb_arn

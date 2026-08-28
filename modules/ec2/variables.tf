@@ -57,6 +57,16 @@ variable "lb_target_group_arn" {
   type        = string
 }
 
+variable "ingress_target_group_arn" {
+  description = "Ingress ALB target group ARN"
+  type        = string
+}
+
+variable "ingress_http_node_port" {
+  description = "NodePort that the in-cluster ingress-nginx controller's HTTP port is exposed on"
+  type        = number
+}
+
 variable "load_balancer_dns" {
   description = "Load balancer DNS name used as control plane endpoint"
   type        = string
